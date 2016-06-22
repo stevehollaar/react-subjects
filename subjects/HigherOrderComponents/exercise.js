@@ -9,8 +9,40 @@
 import React from 'react'
 import { render } from 'react-dom'
 
-const withMousePosition = () => {
+const withMousePosition = (Component) => {
+  return React.createClass({
+    componentDidMount() {
+      window.addEventListener('mousemove', this.handleMouseMove)
+    },
 
+    componentWillUnmount() {
+      window.removeEventListener('mousemove', this.handleMouseMove)
+    },
+
+    handleMouseMove(evt) {
+      const { clientX, clientY } = evt
+      this.setState({
+        x: clientX,
+        y: clientY
+      })
+    },
+
+    getInitialState() {
+      return {
+        x: 0,
+        y: 0
+      }
+    },
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          mouse={this.state}
+        />
+      )
+    }
+  })
 }
 
 const App = React.createClass({

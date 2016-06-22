@@ -5,7 +5,10 @@ const App = React.createClass({
 
   getInitialState() {
     return {
-      contacts: [ { id: 'ryan', first: 'Ryan', last: 'Florence', avatar: 'http://ryanflorence.com/jsconf-avatars/avatars/ryan.jpg' } ]
+      contacts: [
+        { id: 'ryan', first: 'Ryan', last: 'Florence', avatar: 'http://ryanflorence.com/jsconf-avatars/avatars/ryan.jpg' },
+        { id: 'ryan2', first: 'Ryan2', last: 'Florence', avatar: 'http://ryanflorence.com/jsconf-avatars/avatars/ryan.jpg' },
+      ]
     }
   },
 

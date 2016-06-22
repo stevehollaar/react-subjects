@@ -1,6 +1,7 @@
 import React from 'react'
 import { render, findDOMNode } from 'react-dom'
 import { Motion, StaggeredMotion, spring, presets } from 'react-motion'
+import Tone from './utils/Tone'
 import $ from 'jquery'
 import './styles'
 
@@ -20,12 +21,47 @@ const ToggleSwitch = React.createClass({
     })
   },
 
+  componentDidUpdate() {
+    // findDOMNode(this.refs.knob)
+    // const x = this.state.isActive ? 400 : 0
+    // $('.toggle-switch-knob.0').animate({ left: x })
+  },
+
+  renderTones(x) {
+    const tones = [];
+    for (var i = 3; i >= 1; i--) {
+      tones.push(<Tone key={i} isPlaying pitch={x / i + 0.2} volume={1} />)
+    }
+    return tones
+  },
+
   render() {
-    const x = this.state.isActive ? 400 : 0
+    const x = this.state.isActive ? 1 : 0
 
     return (
-      <div className="toggle-switch switch1" onClick={this.toggle}>
-        <div className="toggle-switch-knob" style={{ left: x }}/>
+      <div>
+        <Motion style={{ x: spring(x) }}>
+          {({ x }) => (
+            <div>
+            {this.renderTones(x)}
+            <div className="toggle-switch switch1" onClick={this.toggle}>
+              <div ref='knob' className="toggle-switch-knob" style={{ left: x * 400}}/>
+            </div>
+            </div>
+          )}
+
+        </Motion>
+        <Motion style={{ x: spring(x, presets.wobbly) }}>
+          {({ x }) => (
+            <div>
+            {this.renderTones(x)}
+            <div className="toggle-switch switch1" onClick={this.toggle}>
+              <div ref='knob' className="toggle-switch-knob" style={{ left: x * 400}}/>
+            </div>
+            </div>
+          )}
+
+        </Motion>
       </div>
     )
   }

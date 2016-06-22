@@ -4,6 +4,77 @@ import * as styles from './lib/styles'
 
 ////////////////////////////////////////////////////////////////////////////////
 // Let's make some tabs...
+//
+const Tab = React.createClass({
+  propTypes: {
+    isActive: PropTypes.bool,
+    disabled: PropTypes.bool,
+    children: PropTypes.node,
+    onActivate: PropTypes.func
+  },
+
+  render() {
+    const { isActive, disabled, onActivate, children } = this.props
+    return (
+      <div
+        style={disabled ? styles.disabledTab : (isActive ? styles.activeTab : styles.tab)}
+        onClick={!disabled && onActivate}
+      >
+        {children}
+      </div>
+    )
+  }
+})
+
+const TabList = React.createClass({
+  propTypes: {
+    activeIndex: PropTypes.number.isRequired,
+    onActivate: PropTypes.func
+  },
+
+  getDefaultProps() {
+    return {
+      activeIndex: 0
+    }
+  },
+
+  render() {
+    const tabs = React.Children.map(this.props.children, (child, index) => {
+      return (
+        React.cloneElement(child, {
+          isActive: index === this.props.activeIndex,
+          onActivate: () => this.props.onActivate(index)
+        })
+      )
+    })
+    return (
+      <div style={styles.tabs}>
+        {tabs}
+      </div>
+    )
+  }
+})
+
+const TabPanels = React.createClass({
+  propTypes: {
+    activeIndex: PropTypes.number,
+    children: PropTypes.node
+  },
+  render() {
+    const { activeIndex, children } = this.props
+    return children[activeIndex]
+  }
+})
+
+const TabPanel = React.createClass({
+  render() {
+    return (
+      <div>
+        {this.props.children}
+      </div>
+    )
+  }
+})
 
 const Tabs = React.createClass({
   getInitialState() {
@@ -11,64 +82,87 @@ const Tabs = React.createClass({
       activeIndex: 0
     }
   },
+
   selectTabIndex(activeIndex) {
     this.setState({ activeIndex })
   },
-  renderTabs() {
-    return this.props.data.map((tab, index) => {
-      const isActive = this.state.activeIndex === index
-      return (
-        <div
-          key={tab.label}
-          style={isActive ? styles.activeTab : styles.tab}
-          onClick={() => this.selectTabIndex(index)}
-        >{tab.label}</div>
-      )
-    })
-  },
-  renderPanel() {
-    const tab = this.props.data[this.state.activeIndex]
-    return (
-      <div>
-        <p>{tab.description}</p>
-      </div>
-    )
+
+  activateTab(activeIndex) {
+    this.setState({ activeIndex })
   },
   render() {
+    const children = React.Children.map(this.props.children, child => {
+      if (child.type === TabList) {
+        return React.cloneElement(child, {
+          activeIndex: this.state.activeIndex,
+          onActivate: this.activateTab
+        })
+      }
+
+      if (child.type === TabPanels) {
+        return React.cloneElement(child, {
+          activeIndex: this.state.activeIndex,
+          onActivate: this.activateTab
+        })
+      }
+
+      return child;
+    })
     return (
       <div>
-        <div style={styles.tabs}>
-          {this.renderTabs()}
-        </div>
-        <div style={styles.tabPanels}>
-          {this.renderPanel()}
-        </div>
+        {children}
       </div>
     )
   }
 })
 
+// const App = React.createClass({
+//   render() {
+//     const tabData = [
+//       {
+//         label: 'Tacos',
+//         description: <p>Tacos are delicious!</p>
+//       },
+//       {
+//         label: 'Burritos',
+//         description: <p>Sometimes a burrito is what you really need.</p>
+//       },
+//       {
+//         label: 'Coconut Korma',
+//         description: <p>Might be your best option.</p>
+//       }
+//     ]
+
+//     return (
+//       <div>
+//         <Tabs data={tabData} disabled={[0, 1, 2]} tabsPosition='bottom' />
+//       </div>
+//     )
+//   }
+// })
+//
 const App = React.createClass({
   render() {
-    const tabData = [
-      {
-        label: 'Tacos',
-        description: <p>Tacos are delicious</p>
-      },
-      {
-        label: 'Burritos',
-        description: <p>Sometimes a burrito is what you really need.</p>
-      },
-      {
-        label: 'Coconut Korma',
-        description: <p>Might be your best option.</p>
-      }
-    ]
-
     return (
-      <div>
-        <Tabs data={tabData}/>
-      </div>
+      <Tabs>
+        <TabList>
+          <Tab>Tacos</Tab>
+          <Tab disabled>Burritos</Tab>
+          <Tab>Coconut Korma</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <p>Tacos are delicious!</p>
+          </TabPanel>
+          <TabPanel>
+            <p>Sometimes a burrito is what you really need.</p>
+          </TabPanel>
+          <TabPanel>
+            <p>Might be your best option.</p>
+            <button onClick={null}>Goto the first tab</button>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     )
   }
 })

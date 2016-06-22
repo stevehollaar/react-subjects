@@ -1,14 +1,19 @@
 import React from 'react'
 import { render } from 'react-dom'
 import Perf from 'react-addons-perf'
+window.Perf = Perf
 
 let guid = 0
 
 const ITEMS = []
-for (let i = 0; i < 200; i++)
+for (let i = 0; i < 2000; i++)
   ITEMS.push({ id: ++guid, body: `item ${guid}` })
 
 const TodoItem = React.createClass({
+  // shouldComponentUpdate(nextProps) {
+  //   return this.props.body !== nextProps.body;
+  // },
+
   render() {
     return (
       <li>
@@ -51,13 +56,13 @@ const TodoList = React.createClass({
     }
 
     event.target.reset()
-    Perf.start()
+    // Perf.start()
 
     this.setState({
       items: [ item ].concat(this.state.items)
     }, () => {
-      Perf.stop()
-      Perf.printWasted()
+      // Perf.stop()
+      // Perf.printWasted()
     })
   },
 
@@ -69,7 +74,7 @@ const TodoList = React.createClass({
         </form>
         <ul>
           {this.state.items.map(item => (
-            <TodoItem key={item.id} body={item.body}/>
+            <TodoItem key={item.body} body={item.body}/>
           ))}
         </ul>
       </div>

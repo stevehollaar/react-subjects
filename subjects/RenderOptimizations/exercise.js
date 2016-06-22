@@ -14,7 +14,10 @@
 import React, { PropTypes } from 'react'
 import { render, findDOMNode } from 'react-dom'
 import * as RainbowListDelegate from './RainbowListDelegate'
+import _ from 'underscore'
 import './styles'
+
+const BUFFER = 50
 
 const ListView = React.createClass({
   propTypes: {
@@ -23,21 +26,60 @@ const ListView = React.createClass({
     renderRowAtIndex: PropTypes.func.isRequired
   },
 
+  getInitialState() {
+    return {
+      scrollTop: 0,
+      clientHeight: 0
+    }
+  },
+
+  componentDidMount() {
+    this.node = findDOMNode(this)
+    this.updateSizes()
+    window.addEventListener('resize', this.onResize)
+  },
+
+  updateSizes() {
+    const { scrollTop, clientHeight } = this.node
+    this.setState({ scrollTop, clientHeight })
+  },
+
+  onScroll() {
+    this.updateSizes()
+  },
+
+  onResize() {
+    this.updateSizes()
+  },
+
   render() {
     const { numRows, rowHeight, renderRowAtIndex } = this.props
+    const { scrollTop, clientHeight } = this.state
     const totalHeight = numRows * rowHeight
 
-    const items = []
+    const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - BUFFER)
+    const endIndex = Math.min(startIndex + Math.ceil(clientHeight / rowHeight) + BUFFER, numRows - 1)
 
-    let index = 0
-    while (index < numRows) {
+
+    const items = []
+    console.log(`rendering ${startIndex} to ${endIndex}`)
+
+    let index = startIndex
+    while (index <= endIndex) {
       items.push(<li key={index}>{renderRowAtIndex(index)}</li>)
       index++
     }
 
+    // items.push(
+    //   <div key='end' style={{height: (numRows - endIndex) * rowHeight}} />
+    // )
+
     return (
-      <div style={{ height: '100%', overflowY: 'scroll' }}>
-        <ol style={{ height: totalHeight }}>
+      <div
+        style={{ height: '100%', overflowY: 'scroll' }}
+        onScroll={this.onScroll}
+      >
+        <ol style={{ height: totalHeight, paddingTop: startIndex * rowHeight }}>
           {items}
         </ol>
       </div>
@@ -47,7 +89,7 @@ const ListView = React.createClass({
 
 render(
   <ListView
-    numRows={500}
+    numRows={1118481}
     rowHeight={RainbowListDelegate.rowHeight}
     renderRowAtIndex={RainbowListDelegate.renderRowAtIndex}
   />,

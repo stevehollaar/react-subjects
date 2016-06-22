@@ -7,25 +7,59 @@ const media = createMediaListener({
   tiny: '(max-width: 400px)'
 })
 
-const App = React.createClass({
+const Media = React.createClass({
+  propTypes: {
+    children: React.PropTypes.func
+  },
+
   getInitialState() {
     return {
-      media: media.getState()
+      media: this.props.media.getState()
     }
   },
 
   componentDidMount() {
-    media.listen((media) => {
+    this.props.media.listen((media) => {
       this.setState({ media })
     })
   },
 
   componentWillUnmount() {
-    media.dispose()
+    this.props.media.dispose()
   },
 
   render() {
-    const { media } = this.state
+    return this.props.children(this.state.media)
+  }
+})
+
+const withMedia = (Component, media) => {
+  return React.createClass({
+    getInitialState() {
+      return {
+        media: media.getState()
+      }
+    },
+
+    componentDidMount() {
+      media.listen((media) => {
+        this.setState({ media })
+      })
+    },
+
+    componentWillUnmount() {
+      media.dispose()
+    },
+
+    render() {
+      return <Component {...this.props} media={this.state.media} />
+    }
+  })
+}
+
+const App = React.createClass({
+  render() {
+    const { media } = this.props
 
     return media.big ? (
       <h1>Hey, this is a big screen</h1>
@@ -37,7 +71,27 @@ const App = React.createClass({
   }
 })
 
-render(<App/>, document.getElementById('app'))
+const AppWithMedia2 = React.createClass({
+  render() {
+    return (
+      <Media media={media}>
+        {media =>
+          media.big ? (
+          <h1>Hey, this is a big screen</h1>
+        ) : media.tiny ? (
+          <h6>tiny tiny tiny</h6>
+        ) : (
+          <h3>Meh...</h3>
+        )
+        }
+      </Media>
+    )
+  }
+})
+
+const AppWithMedia = withMedia(App, media)
+
+render(<AppWithMedia2/>, document.getElementById('app'))
 
 ////////////////////////////////////////////////////////////////////////////////
 // We can move all of that code into a higher-order component. A higher-order

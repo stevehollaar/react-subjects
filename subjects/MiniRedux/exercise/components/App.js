@@ -2,6 +2,11 @@ import React, { PropTypes } from 'react'
 import connect from '../mini-redux/connect'
 
 const App = React.createClass({
+  propTypes: {
+    counter: React.PropTypes.number.isRequired,
+    dispatch: React.PropTypes.func.isRequired
+  },
+
   increment() {
     this.props.dispatch({ type: 'INCREMENT' })
   },

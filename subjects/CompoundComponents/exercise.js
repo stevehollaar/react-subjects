@@ -33,24 +33,83 @@ import React, { PropTypes } from 'react'
 import { render } from 'react-dom'
 
 const RadioGroup = React.createClass({
+  getInitialState() {
+    return {
+      isValid: true
+    }
+  },
+
   propTypes: {
-    defaultValue: PropTypes.string
+    value: PropTypes.string.isRequired,
+    onUpdate: PropTypes.func.isRequired,
+    children: PropTypes.node
+  },
+
+  componentWillReceiveProps(nextProps) {
+    const children = React.Children.toArray(nextProps.children)
+    const currentIndex = children.findIndex(child => child.props.value === nextProps.value)
+    this.setState({
+      isValid: currentIndex !== -1
+    })
+  },
+
+  onKeyDown(evt) {
+    console.log(evt.key);
+    const children = React.Children.toArray(this.props.children)
+    const currentIndex = children.findIndex(child => child.props.value === this.props.value)
+    console.log(currentIndex)
+    if (evt.key === 'ArrowUp') {
+      const next = children[currentIndex + 1]
+      if (next) {
+        this.props.onUpdate(next.props.value)
+      }
+    } else if (evt.key === 'ArrowDown') {
+      const prev = children[currentIndex - 1]
+      if (prev) {
+        this.props.onUpdate(prev.props.value)
+      }
+    }  else if (evt.key === 'Enter') {
+      if (currentIndex !== -1) {
+        this.props.onUpdate(children[currentIndex].props.value)
+      }
+    }
   },
 
   render() {
-    return <div>{this.props.children}</div>
+    const { value, onUpdate, children } = this.props
+    return (
+      <div onKeyDown={this.onKeyDown}>
+        {React.Children.map(children, child =>
+          React.cloneElement(child, {
+            isSelected: child.props.value === value,
+            onSelect: onUpdate
+          })
+        )}
+        {!this.state.isValid && <p>Error!</p>}
+      </div>
+    )
   }
 })
 
 const RadioOption = React.createClass({
   propTypes: {
-    value: PropTypes.string
+    value: PropTypes.string,
+    isSelected: PropTypes.bool,
+    onSelect: PropTypes.func,
+    children: PropTypes.node.isRequired,
   },
 
   render() {
+    const { value, isSelected, onSelect, children } = this.props
+
     return (
-      <div>
-        <RadioIcon isSelected={false}/> {this.props.children}
+      <div
+        onClick={() => onSelect(value)}
+        tabIndex="0"
+        style={{ cursor: 'pointer' }}
+      >
+        <RadioIcon isSelected={isSelected} />
+        {children}
       </div>
     )
   }
@@ -80,17 +139,40 @@ const RadioIcon = React.createClass({
 })
 
 const App = React.createClass({
+  getInitialState() {
+    return {
+      selectedValue: 'fm'
+    }
+  },
+
+  updateSelected() {
+    this.setState({ selectedValue: 'tape '})
+  },
+
+  onUpdate(selectedValue) {
+    this.setState({ selectedValue })
+  },
+
   render() {
     return (
       <div>
         <h1>♬ It's about time that we all turned off the radio ♫</h1>
 
-        <RadioGroup defaultValue="fm">
+        <RadioGroup value={this.state.selectedValue} onUpdate={this.onUpdate}>
           <RadioOption value="am">AM</RadioOption>
           <RadioOption value="fm">FM</RadioOption>
           <RadioOption value="tape">Tape</RadioOption>
           <RadioOption value="aux">Aux</RadioOption>
         </RadioGroup>
+        <button onClick={() => this.onUpdate('tape')} >
+          Set to tape
+        </button>
+        <button onClick={() => this.onUpdate('aux')} >
+          Set to aux
+        </button>
+        <button onClick={() => this.onUpdate('blah')} >
+          Set to blah
+        </button>
       </div>
     )
   }

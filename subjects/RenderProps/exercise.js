@@ -18,20 +18,51 @@
 //   `utils/githubSearch` that uses a render prop to pass its data back up
 ////////////////////////////////////////////////////////////////////////////////
 import React from 'react'
-import { render } from 'react-dom'
+import { render, findDOMNode } from 'react-dom'
 import { listen } from './utils/log'
 
-const Tail = React.createClass({
-  render() {
-    const { lines } = this.props
+const PinnedToBottom = React.createClass({
+  propTypes: {
+    bufferPx: React.PropTypes.number.isRequired,
+    children: React.PropTypes.node
+  },
 
-    return (
-      <ul>
-        {lines.map((line, index) => (
-          <li key={index}>{line}</li>
-        ))}
-      </ul>
-    )
+  componentDidMount() {
+    this.pinToBottom()
+  },
+
+  componentDidUpdate() {
+    this.pinToBottom()
+  },
+
+  pinToBottom() {
+    const el = findDOMNode(this)
+    const { scrollHeight, scrollTop, clientHeight } = el;
+    // if ((scrollHeight - scrollTop) < this.props.bufferPx) {
+    if ((scrollHeight - (scrollHeight + scrollTop)) < this.props.bufferPx) {
+
+      el.scrollTop = scrollHeight
+    }
+    // }
+  },
+
+  render() {
+    const { style = {} } = this.props;
+    return <div {...this.props} style={{...style, overflowY: 'scroll'}} />
+  }
+})
+
+const Tail = React.createClass({
+  propTypes: {
+    lines: React.PropTypes.array.isRequired,
+    numLines: React.PropTypes.number.isRequired,
+    children: React.PropTypes.func.isRequired
+  },
+
+  render() {
+    const { lines, numLines, children } = this.props;
+    const lastLines = lines.slice(lines.length - numLines);
+    return this.props.children(lastLines);
   }
 })
 
@@ -54,9 +85,19 @@ const App = React.createClass({
     return (
       <div>
         <h1>Heads up Eggman, here comes <code>&lt;Tails&gt;</code>s!</h1>
-        <div style={{ height: 400, overflowY: 'scroll', border: '1px solid' }}>
-          <Tail lines={this.state.lines}/>
-        </div>
+        <PinnedToBottom style={{ height: 200, border: '1px solid' }} bufferPx={10}>
+          <Tail numLines={5} lines={this.state.lines} children={() => null}>
+            {lines =>
+              <ul>
+                {lines.map((line, index) =>
+                  <li key={line}>
+                    {line}
+                  </li>
+                )}
+              </ul>
+            }
+          </Tail>
+        </PinnedToBottom>
       </div>
     )
   }

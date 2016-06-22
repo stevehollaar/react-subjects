@@ -14,17 +14,23 @@ styles.theremin = {
   display: 'inline-block'
 }
 
-const App = React.createClass({
-  componentDidMount() {
-    this.oscillator = createOscillator()
+const Theremin = React.createClass({
+  getInitialState() {
+    return {
+      isPlaying: false,
+      pitch: 0.2,
+      volume: 0.15
+    };
   },
 
   play() {
-    this.oscillator.play()
+    this.setState({ isPlaying: true });
+    // this.oscillator.play()
   },
 
   stop() {
-    this.oscillator.stop()
+    this.setState({ isPlaying: false });
+    // this.oscillator.stop()
   },
 
   changeTone(event) {
@@ -32,20 +38,68 @@ const App = React.createClass({
     const { top, right, bottom, left } = event.target.getBoundingClientRect()
     const pitch = (clientX - left) / (right - left)
     const volume = 1 - (clientY - top) / (bottom - top)
+    // this.oscillator.setPitchBend(pitch)
+    // this.oscillator.setVolume(volume)
+    this.setState({
+      pitch, volume
+    });
+  },
+
+  render() {
+    return (
+      <div
+        style={styles.theremin}
+        onMouseEnter={this.play}
+        onMouseLeave={this.stop}
+        onMouseMove={this.changeTone}
+      >
+        <pre>{JSON.stringify(this.state, null, 2)}</pre>
+        <Tone {...this.state} />
+      </div>
+    )
+  }
+})
+
+const Tone = React.createClass({
+  componentDidMount() {
+    this.oscillator = createOscillator()
+    this.doImperativeStuff();
+  },
+
+  componentDidUpdate() {
+    this.doImperativeStuff();
+  },
+
+  doImperativeStuff() {
+    const { isPlaying, pitch, volume } = this.props;
+    if (isPlaying) {
+      this.oscillator.play();
+    } else {
+      this.oscillator.stop();
+    }
+
     this.oscillator.setPitchBend(pitch)
     this.oscillator.setVolume(volume)
   },
 
   render() {
+    return null
+  }
+})
+
+const App = React.createClass({
+  render() {
     return (
       <div>
         <h1>What does it mean to be declarative?</h1>
-        <div
-          style={styles.theremin}
-          onMouseEnter={this.play}
-          onMouseLeave={this.stop}
-          onMouseMove={this.changeTone}
-        />
+        <Theremin />
+        <Theremin />
+        <Theremin />
+        <Theremin />
+        <Theremin />
+        <Theremin />
+        <Theremin />
+        <Theremin />
       </div>
     )
   }

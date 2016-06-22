@@ -1,8 +1,13 @@
 import React from 'react'
 import App from './components/App'
 import { render } from 'react-dom'
+import { Provider } from 'react-redux'
 
-render((<App/>), document.getElementById('app'))
+render((
+  <Provider>
+    <App/>
+  </Provider>
+), document.getElementById('app'))
 
 ////////////////////////////////////////////////////////////////////////////////
 // - shared state (add sidebar)
